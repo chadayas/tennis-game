@@ -30,6 +30,11 @@ struct BottomBorder {
 	Vector2 position;
 	Vector2 size;
 };
+struct Scoreboard{
+	int user_score;
+	int bot_score;
+};
+
 
 // Window size
 
@@ -40,6 +45,8 @@ struct BottomBorder {
 	const char start[] = "Welcome";
 	const char press[] = "Press SPACE to start";
 	
+	const char cp[] = "Computer"; ;
+	const char player[] = "Player";;
 	// For our two rectangles
 	const float l_recStart = 100;
 	const float r_recStart = 1100;
@@ -54,11 +61,10 @@ struct BottomBorder {
 	const float center_y = screen_height / 2;
 	const float move_x = 5;
 	const float move_y = 5;
-	int fontSize = 15;
+	int fontSize = 100;
 	
 	bool moveBall = false;
-
-
+	
 	// name for our structs
 	
 	leftRectangle l_rec;
@@ -66,21 +72,31 @@ struct BottomBorder {
 	Ball ball;
 	TopBorder top_border;
 	BottomBorder bottom_border;
-	
+	Scoreboard scoreboard;
+
+
+
 	// movement vectors
 
-	Vector2 ballMovement = { move_x, move_y };	
-	Vector2 recMovement = { move_x, move_y };	
+	Vector2 ballMovement = { 2*move_x, 2*move_y };	
+	Vector2 recMovement = { 1.5 * move_x, 1.5 *move_y };	
 
 	void StartScreen(){
-		
-		DrawText(start, center_x, center_y, fontSize, RAYWHITE);
+		DrawText(start, center_x - 200, center_y - 200, fontSize, RAYWHITE);
+		DrawText(press, center_x - 270, center_y + 200, fontSize-50, RAYWHITE);	
 	}
 
 	void PlayerMovement(){
 		if (IsKeyDown(KEY_UP)) l_rec.position.y -= recMovement.y;
 		if (IsKeyDown(KEY_DOWN)) l_rec.position.y += recMovement.y;
 	}
+//	center_x - 500
+//	100
+	void Scoreboard(){
+		DrawText(player, 1, 1, fontSize -50, RAYWHITE);
+		DrawText(cp, center_x + 300, 100, fontSize -50, RAYWHITE);
+	}
+
 	void ComputerMovement(){
 
 
@@ -100,8 +116,9 @@ int main(){
 
 	InitWindow(screen_width, screen_height, t);
 	
-	// rectangles, ball, and border init
 	
+	// rectangles, ball, and border init
+
 	l_rec.position = Vector2{ l_recStart, middle };
 	r_rec.position = Vector2{ r_recStart, middle }; 
 
@@ -112,11 +129,18 @@ int main(){
 	bottom_border.size = Vector2{screen_width, rec_width};	
 	
 	top_border.position = Vector2{1,1};
-	top_border.size = Vector2{screen_width, rec_width};
+	top_border.size = Vector2{screen_width, 2*rec_width};
 
  	ball.position = Vector2{ center_x, center_y};
 	ball.radius = radius;	
-		
+	
+	scoreboard.user_score = 0;
+	scoreboard.bot_score = 0;
+	
+	// init for scoreboard objects
+	scoreboard.user_score = 0;
+	scoreboard.bot_score = 0;
+
 
 	SetTargetFPS(60);
 
@@ -138,18 +162,24 @@ int main(){
 			,bottom_border.size.x, bottom_border.size.y };
 
 
-
-
 		// move the circle 
 		
 		if (IsKeyPressed(KEY_SPACE)) moveBall = true;
 		else if (IsKeyPressed(KEY_P)) moveBall = false;
 
-		if (moveBall){
-			ball.position.x +=- 2 * ballMovement.x;
-			ball.position.y +=  ballMovement.y;
+		if (!moveBall){
+			StartScreen();	
 
-			r_rec.position.y += ballMovement.y;
+		}
+
+		if (moveBall){
+			Scoreboard();
+			ball.position.x +=- 2 * ballMovement.x;
+			ball.position.y +=    ballMovement.y;
+
+			r_rec.position.y +=  0.3 * ballMovement.y;
+				
+			PlayerMovement();
 		}
 	
 			// Ball collision logic
@@ -162,6 +192,7 @@ int main(){
 	
 		if (CheckCollisionCircleRec(ball.position, ball.radius, bottomBorder))
 			ballMovement.y *= -1;
+		
 		if (CheckCollisionCircleRec(ball.position, ball.radius, computer_rec))  
 			ballMovement.x *= -1;
 		
@@ -174,7 +205,6 @@ int main(){
 		
 		BeginDrawing();
 
-		PlayerMovement();
 		
 
 		DrawRectangleV(l_rec.position, l_rec.size, RAYWHITE);
