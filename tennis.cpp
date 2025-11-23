@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include <string>
 #include <iostream>
+#include <vector>
 using namespace std;
 
 struct leftRectangle {
@@ -34,6 +35,17 @@ struct Scoreboard{
 	int user_score;
 	int bot_score;
 };
+struct LeftGoalPost{
+
+	Vector2 position;
+	Vector2 size;
+};
+
+struct RightGoalPost{
+
+	Vector2 position;
+	Vector2 size;
+};
 
 
 // Window size
@@ -61,8 +73,9 @@ struct Scoreboard{
 	const float center_y = screen_height / 2;
 	const float move_x = 5;
 	const float move_y = 5;
-	int fontSize = 100;
 	
+	int fontSize = 100;
+
 	bool moveBall = false;
 	
 	// name for our structs
@@ -73,6 +86,8 @@ struct Scoreboard{
 	TopBorder top_border;
 	BottomBorder bottom_border;
 	Scoreboard scoreboard;
+	LeftGoalPost l_goalp;
+	RightGoalPost r_goalp;
 
 
 
@@ -90,19 +105,29 @@ struct Scoreboard{
 		if (IsKeyDown(KEY_UP)) l_rec.position.y -= recMovement.y;
 		if (IsKeyDown(KEY_DOWN)) l_rec.position.y += recMovement.y;
 	}
-//	center_x - 500
-//	100
-	void Scoreboard(){
-		DrawText(player, 1, 1, fontSize -50, RAYWHITE);
-		DrawText(cp, center_x + 300, 100, fontSize -50, RAYWHITE);
-	}
-
-	void ComputerMovement(){
-
-
-	}
-
 	
+	
+	void Scoreboard(){
+		// state which side is player and which is computer.
+		DrawText(player, center_x - 450, 100, fontSize -50, RAYWHITE);
+		DrawText(cp, center_x + 300, 100, fontSize -50, RAYWHITE);
+		
+		// drawing the scores
+		// TODO 
+		// implement a scoring mechanism that changes once the ball hits a 
+		// players side. We may need to learn how to restart the game as well.
+		// once the ball hits there.
+		// best option since the DrawText() takes in a constant, we could 
+		// manually counter the points up to a certain threshold (maybe 5)
+		DrawText(TextFormat(scoreboard.user_score), center_x + 300, 
+				50, fontSize -50, RAYWHITE);
+		
+		DrawText(TextFormat(scoreboard.bot_score), center_x + 300, 50, 
+				fontSize -50, RAYWHITE);
+	}
+
+	void ComputerMovement();
+
 	
 	void BallMovement(){
 	  	ball.position.x +=- 2 * ballMovement.x;
@@ -137,6 +162,12 @@ int main(){
 	scoreboard.user_score = 0;
 	scoreboard.bot_score = 0;
 	
+	l_goalp.position = Vector2{1, middle};
+	l_goalp.size= Vector2{rec_width, screen_height};
+	
+	r_goalp.position = Vector2{r_recStart + 50, middle};
+	r_goalp.size= Vector2{rec_width, screen_height};
+	
 	// init for scoreboard objects
 	scoreboard.user_score = 0;
 	scoreboard.bot_score = 0;
@@ -160,7 +191,12 @@ int main(){
 		
 		Rectangle bottomBorder = {bottom_border.position.x, bottom_border.position.y
 			,bottom_border.size.x, bottom_border.size.y };
+		 
+		Rectangle r_gpost = {r_goalp.position.x, r_goalp.position.y,
+		r_goalp.size.x, r_goalp.size.y};
 
+		Rectangle l_gpost= {l_goalp.position.x, l_goalp.position.y,
+		r_goalp.size.x, r_goalp.size.y}; 
 
 		// move the circle 
 		
@@ -180,6 +216,13 @@ int main(){
 			r_rec.position.y +=  0.3 * ballMovement.y;
 				
 			PlayerMovement();
+
+			if (CheckCollisionCircleRec(ball.position, ball.radius, l_gpost)){
+				scoreboard.bot_score =+ 1;	
+		
+			if (CheckCollisionCircleRec(ball.position, ball.radius, r_gpost)){
+				scoreboard.user_score=+ 1;
+
 		}
 	
 			// Ball collision logic
@@ -195,12 +238,6 @@ int main(){
 		
 		if (CheckCollisionCircleRec(ball.position, ball.radius, computer_rec))  
 			ballMovement.x *= -1;
-		
-
-
-		//if (CheckCollisionRecs(bottomBorder, computer_rec) ||
-		//CheckCollisionRecs(topBorder, computer_rec))
-		//	r_rec.position.y *= -1;	
 		
 		
 		BeginDrawing();
@@ -225,7 +262,7 @@ int main(){
 
 	return 0;
 }
-
+}
 
 
 
